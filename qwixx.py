@@ -13,7 +13,7 @@ class userPlayer(Player):
 
     def __init__(self):
 
-        self.name = 'test' # input("Enter Player Name: \n")
+        self.name = 'Player 1' # input("Enter Player Name: \n")
 
         return
 
@@ -35,7 +35,6 @@ class randomPlayer(Player):
 
     def __init__(self):
         self.name = 'Random Player'
-        return
 
     def choose_move(self, game, valid_moves):
 
@@ -212,15 +211,19 @@ class Board:
         color_moves = []
 
         for color in self.colors:
+            if np.sum(self.__getattribute__(color).status) >= 5:
+                max_index = 10 # can go up to the 2 / 12
+            else:
+                max_index = 9  # can only go up to the 3 / 11
 
             for value in moves['wild']:
                 move_index = np.argwhere(self.__getattribute__(color).values == value)[0][0]
-                if move_index > self.__getattribute__(color).i_max:
+                if (move_index > self.__getattribute__(color).max_checked) & (move_index <= max_index):
                     wild_moves.append(['wild', color, value])
 
             for value in moves[color]:
                 move_index = np.argwhere(self.__getattribute__(color).values == value)[0][0]
-                if move_index > self.__getattribute__(color).i_max:
+                if (move_index > self.__getattribute__(color).max_checked) & (move_index <= max_index):
                     color_moves.append(['color', color, value])
 
         return wild_moves, color_moves
@@ -288,11 +291,11 @@ class Color:
     def update_imax(self):
 
         if np.sum(self.status) > 0:
-            i_max = np.max(np.argwhere(self.status == True))
+            max_checked = np.max(np.argwhere(self.status == True))
         else:
-            i_max = -1
+            max_checked = -1
 
-        self.i_max = i_max
+        self.max_checked = max_checked
         
         return
     
@@ -329,8 +332,9 @@ class Color:
 
         return line1
 
+game=Game()
 
-players = [['user', 'Player 1'], ['random', 'Player 2']]
+#players = [['user', 'Player 1'], ['random', 'Player 2']]
 
-game = Game(players=players, seed=42)
+#game = Game(players=players, seed=42)
 
