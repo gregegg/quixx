@@ -20,12 +20,13 @@ class userPlayer(Player):
     def choose_move(self, game, valid_moves):
 
         valid_move_strings = []
-        for pair in valid_moves:
-            valid_move_strings.append(' '.join([str(pair[0]), str(pair[1])]))
+        for m in valid_moves:
+            valid_move_strings.append(f'{m[0]} - {m[1]} {m[2]}')
 
         move_options = [inquirer.List("move", message="Select a Move", choices=valid_move_strings)]
         selected_move = inquirer.prompt(move_options)
         return_list = selected_move['move'].split()
+        return_list.pop(1)
 
         return return_list
     
@@ -82,30 +83,50 @@ class Game:
         while self.game_end == False:
             # active player rolls the diceget_valid_moves
             for roll_board in self.boards:
-                print(chr(27) + "[2J")
+                # print(chr(27) + "[2J")  # Clear Terminal
                 self.roll_dice()
                 self.compute_moves()
 
                 for play_board in self.boards:
                     print(play_board)
-                    if play_board == roll_board:
-                        valid_moves = play_board.get_valid_moves(moves=self.moves, wild_only=False)
-                    else: 
-                        valid_moves = play_board.get_valid_moves(moves=self.moves, wild_only=True)
-                    
-                    if len(valid_moves) > 0:
-                        selected_move = play_board.player.choose_move(game=self, valid_moves=valid_moves)
-                        if selected_move != ['Do', 'nothing']:
-                            play_board.check_cell(color = selected_move[0], value=int(selected_move[1]))
-                    elif play_board == roll_board:
-                        play_board.take_x()
+                    null_nothing = [['null', 'do', 'nothing']]
+                    null_x = [['null', 'take', 'x']]
+                    wild_moves, color_moves = play_board.get_valid_moves(moves=self.moves)
 
+                    if play_board == roll_board:  # rolling dice player
+                        print(f' -- ACTIVE PLAYER -- {play_board.player.name} -- (the one who rolled the dice)')
+                        if len(wild_moves + color_moves) > 0:
+                            selected_move = play_board.player.choose_move(game=self, valid_moves=wild_moves + color_moves + null_x)
+                            if selected_move[0] == 'null': # rolling dice player can choose to take an x 
+                                play_board.take_x()
+                                print(play_board)
+                            elif selected_move[0] == 'color':
+                                play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
+                                print(play_board)
+                            elif selected_move[0] == 'wild':
+                                play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
+                                print(play_board)
+                                wild_moves, color_moves = play_board.get_valid_moves(moves=self.moves)  # update list of valid moves
+                                selected_move = play_board.player.choose_move(game=self, valid_moves=color_moves + null_nothing)
+                                if selected_move[0] == 'color':
+                                    play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
+                                    print(play_board)
+                        else:  # rolling dice player has to take an x if no moves available
+                            play_board.take_x()
+
+                    else:  # non dice-rolling player
+                        print(f' -- PASSIVE PLAYER  -- {play_board.player.name} --  (the one who did NOT roll the dice)')
+                        selected_move = play_board.player.choose_move(game=self, valid_moves=wild_moves + null_nothing)
+                        if selected_move[0] != 'null':
+                            play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
+                            print(play_board)
+                        
                     self.check_game_end()
 
-        print(f'================ Final Boards ============ ')
+        print(f'=============================== Final Boards ========================')
         for board in self.boards:
-            print(' -------------------------------- ')
             print(board)
+            print('---------------------------------------------------------------------')
 
         return
     
@@ -158,10 +179,10 @@ class Game:
         d = self.dice
         wild = d['w1'] + d['w2']
         moves['wild'] = [wild]
-        moves['reds'] = list(set([d['w1'] + d['red'], d['w2'] + d['red'], wild]))
-        moves['yellows'] = list(set([d['w1'] + d['yellow'], d['w2'] + d['yellow'], wild]))
-        moves['blues'] = list(set([d['w1'] + d['blue'], d['w2'] + d['blue'], wild]))
-        moves['greens'] = list(set([d['w1'] + d['green'], d['w2'] + d['green'], wild]))
+        moves['reds'] = list(set([d['w1'] + d['red'], d['w2'] + d['red']]))
+        moves['yellows'] = list(set([d['w1'] + d['yellow'], d['w2'] + d['yellow']]))
+        moves['blues'] = list(set([d['w1'] + d['blue'], d['w2'] + d['blue']]))
+        moves['greens'] = list(set([d['w1'] + d['green'], d['w2'] + d['green']]))
 
         self.moves = moves
 
@@ -185,24 +206,24 @@ class Board:
 
         return
 
-    def get_valid_moves(self, moves, wild_only=False):
+    def get_valid_moves(self, moves):
 
-        valid_moves = []
-        if wild_only:  # for non-rolling players
-            valid_moves.append(['Do', 'nothing']) 
+        wild_moves = []
+        color_moves = []
 
         for color in self.colors:
-            if wild_only:  # for non-rolling players
-                move_options = moves['wild']
-            else: # for the player that rolled the dice
-                move_options = moves[color]
 
-            for value in move_options:
+            for value in moves['wild']:
                 move_index = np.argwhere(self.__getattribute__(color).values == value)[0][0]
                 if move_index > self.__getattribute__(color).i_max:
-                    valid_moves.append([color, value])
+                    wild_moves.append(['wild', color, value])
 
-        return valid_moves
+            for value in moves[color]:
+                move_index = np.argwhere(self.__getattribute__(color).values == value)[0][0]
+                if move_index > self.__getattribute__(color).i_max:
+                    color_moves.append(['color', color, value])
+
+        return wild_moves, color_moves
 
     
     def get_board_score(self):
