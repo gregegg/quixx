@@ -17,18 +17,13 @@ class Game:
         print(f'started game with seed {seed}') 
         np.random.seed(self.seed)
 
-        # initialize player boards
-        if players == None:
-            players = [['user', 'Player 1'], ['random', 'Player 2']]
-
-
-        self.players = len(players)
+        self.players = players
         self.boards = []
         for i, player in enumerate(range(self.players)):
             if i == 0:
-                self.boards.append(Board(colors=self.colors, player=userPlayer()))
+                self.boards.append(Board(colors=self.colors, player=userPlayer(f'User - P{i+1}')))
             else:
-                self.boards.append(Board(colors=self.colors, player=randomPlayer()))
+                self.boards.append(Board(colors=self.colors, player=randomPlayer(f'Random - P{i+1}')))
         print(f'initialized game with {self.players} boards')
         
         # set first turn to first player (0 index)
