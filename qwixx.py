@@ -3,7 +3,7 @@ import inquirer
 
 class Game:
 
-    def __init__(self, players=None, seed=None) -> None:
+    def __init__(self, players=4, seed=None) -> None:
         
         self.colors = ['reds', 'yellows', 'greens', 'blues']
         self.colors_ended = {}
@@ -38,19 +38,21 @@ class Game:
         # start while loop
         self.game_end = False
         while self.game_end == False:
-            # active player rolls the diceget_valid_moves
+            # active player rolls the dice
             for roll_board in self.boards:
                 # print(chr(27) + "[2J")  # Clear Terminal
                 self.roll_dice()
                 self.compute_moves()
 
                 for play_board in self.boards:
+                    print("-"*80)
                     print(play_board)
                     print(f'rolled dice: {self.dice}')
                     wild_moves, color_moves = play_board.get_valid_moves(moves=self.moves)
 
                     if play_board == roll_board:  # rolling dice player
-                        print(f' -- ACTIVE PLAYER -- {play_board.player.name} -- (the one who rolled the dice)')
+                        
+                        print(f'ACTIVE PLAYER:{play_board.player.name} -- (the one who rolled the dice)')
                         if len(wild_moves + color_moves) > 0:
                             selected_move = play_board.player.choose_move(game=self, valid_moves=wild_moves + color_moves + null_x)
                             if selected_move[0] == 'null': # rolling dice player can choose to take an x 
@@ -62,6 +64,7 @@ class Game:
                             elif selected_move[0] == 'wild':
                                 play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
                                 print(play_board)
+                                print(f'rolled dice: {self.dice}')
                                 wild_moves, color_moves = play_board.get_valid_moves(moves=self.moves)  # update list of valid moves
                                 selected_move = play_board.player.choose_move(game=self, valid_moves=color_moves + null_nothing)
                                 if selected_move[0] == 'color':
@@ -71,7 +74,7 @@ class Game:
                             play_board.take_x()
 
                     else:  # non dice-rolling player
-                        print(f' -- PASSIVE PLAYER  -- {play_board.player.name} --  (the one who did NOT roll the dice)')
+                        print(f'PASSIVE PLAYER: {play_board.player.name} -- (the one who did NOT roll the dice)')
                         selected_move = play_board.player.choose_move(game=self, valid_moves=wild_moves + null_nothing)
                         if selected_move[0] != 'null':
                             play_board.check_cell(color = selected_move[1], value=int(selected_move[2]))
@@ -127,7 +130,6 @@ class Game:
             dice[die[0]] = values[i]
 
         self.dice = dice
-        print(f'rolled dice: {dice}')
 
     def compute_moves(self):
 
