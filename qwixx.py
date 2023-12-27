@@ -13,8 +13,9 @@ class Game:
         # seed random numbers
         if seed == None:
             seed = np.random.randint(1,999999)
-        print(f'started game with seed {seed}')
-        np.random.seed(seed)
+        self.seed = seed
+        print(f'started game with seed {seed}') 
+        np.random.seed(self.seed)
 
         # initialize player boards
         if players == None:
