@@ -83,6 +83,7 @@ class Game:
                             print(play_board)
                         
                     self.check_game_end()
+                    self.turn += 1
 
         print(f'=============================== Final Boards ========================')
         for board in self.boards:
