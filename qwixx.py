@@ -31,6 +31,10 @@ class Game:
 
         # set graphics
 
+        # initialize some null moves
+        null_nothing = [['null', 'do', 'nothing']]
+        null_x = [['null', 'take', 'x']]
+
         # start while loop
         self.game_end = False
         while self.game_end == False:
@@ -42,8 +46,7 @@ class Game:
 
                 for play_board in self.boards:
                     print(play_board)
-                    null_nothing = [['null', 'do', 'nothing']]
-                    null_x = [['null', 'take', 'x']]
+                    print(f'rolled dice: {self.dice}')
                     wild_moves, color_moves = play_board.get_valid_moves(moves=self.moves)
 
                     if play_board == roll_board:  # rolling dice player
