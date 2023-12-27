@@ -1,4 +1,5 @@
 import numpy as np
+import secrets
 import inquirer
 
 class Game:
@@ -12,10 +13,11 @@ class Game:
 
         # seed random numbers
         if seed == None:
-            seed = np.random.randint(1,999999)
-        self.seed = seed
-        print(f'started game with seed {seed}') 
-        np.random.seed(self.seed)
+            self.dice_seed = secrets.randbits(128)  
+        else:
+            self.dice_seed = seed
+        self.dice_rng = np.random.default_rng(self.dice_seed)
+        print(f'started game with seed {self.dice_seed}') 
 
         self.players = players
         self.boards = []
@@ -125,7 +127,7 @@ class Game:
     def roll_dice(self):
 
         dice = {'w1' : None, 'w2': None, 'red' : None, 'yellow': None, 'green': None, 'blue': None}
-        values = np.random.randint(low=1, high=6, size=len(dice))
+        values = self.dice_rng.integers(low=1, high=6, size=len(dice))
         for i, die in enumerate(dice.items()):
             dice[die[0]] = values[i]
 
@@ -354,10 +356,5 @@ class randomPlayer(Player):
         return selected_move
 
 
-
-game=Game()
-
-#players = [['user', 'Player 1'], ['random', 'Player 2']]
-
-#game = Game(players=players, seed=42)
-
+if __name__ == "__main__":
+    game=Game(seed=42)
