@@ -1,4 +1,5 @@
 import inquirer
+import numpy as np
 
 class Player():
 
